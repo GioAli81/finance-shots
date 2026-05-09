@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Shots – Analisi, Stock Thesis & Market Commentary</title>
+<meta name="description" content="Analisi tecniche, stock thesis e market commentary. Skin in the game. Niente rumore, solo tesi chiare e livelli reali.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080808;
+  --surface:#111111;
+  --surface2:#181818;
+  --border:#222222;
+  --accent:#d4f53c;
+  --accent-dim:rgba(212,245,60,0.08);
+  --red:#ff3d3d;
+  --red-dim:rgba(255,61,61,0.08);
+  --blue:#4f9eff;
+  --blue-dim:rgba(79,158,255,0.08);
+  --orange:#ff9d3d;
+  --muted:#444444;
+  --text:#e8e4d9;
+  --text2:#777777;
+  --font-display:'Syne',sans-serif;
+  --font-body:'Space Grotesk',sans-serif;
+  --font-mono:'Space Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;overflow-x:hidden;width:100%;}
+
+/* ── NAV ── */
+nav{background:rgba(8,8,8,0.97);border-bottom:1px solid var(--border);padding:0 2.5rem;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);width:100%;}
+.nav-i{max-width:1200px;margin:0 auto;height:58px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:3px;color:var(--accent);text-decoration:none;}
+.logo em{color:var(--text);font-style:normal;}
+.nav-links{display:flex;gap:2.5rem;list-style:none;}
+.nav-links a{color:var(--text2);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-btn{background:var(--accent);color:#080808;padding:7px 18px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:opacity .2s;}
+.nav-btn:hover{opacity:0.85;}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;}
+.mobile-menu{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 2.5rem;}
+.mobile-menu a{display:block;color:var(--text2);font-size:13px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;padding:.5rem 0;border-bottom:1px solid var(--border);}
+.mobile-menu a:last-child{border:none;}
+
+/* ── HERO ── */
+.hero{width:100%;max-width:1200px;margin:0 auto;padding:5rem 2.5rem 3rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.8s ease-in-out infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.eyebrow-text{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono);}
+h1.hero-title{font-family:var(--font-display);font-size:clamp(2.2rem,6vw,6.5rem);font-weight:800;line-height:.92;letter-spacing:-1px;margin-bottom:1.5rem;}
+h1.hero-title .line2{display:block;color:var(--accent);}
+.hero-desc{color:var(--text2);font-size:1rem;max-width:420px;line-height:1.8;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-a{background:var(--accent);color:#080808;padding:13px 26px;border-radius:3px;font-size:13px;font-weight:700;text-decoration:none;letter-spacing:.5px;transition:opacity .2s;}
+.btn-a:hover{opacity:0.85;}
+.btn-b{border:1px solid var(--border);color:var(--text);padding:13px 26px;border-radius:3px;font-size:13px;text-decoration:none;transition:border-color .2s,color .2s;}
+.btn-b:hover{border-color:var(--accent);color:var(--accent);}
+.hero-right{display:flex;flex-direction:column;gap:1rem;}
+.chart-widget{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem;}
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;}
+.chart-asset{font-family:var(--font-mono);font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;}
+.chart-price{font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:var(--text);}
+.chart-chg-pos{color:var(--accent);font-size:13px;font-family:var(--font-mono);}
+.chart-chg-neg{color:var(--red);font-size:13px;font-family:var(--font-mono);}
+.chart-tabs{display:flex;gap:6px;}
+.tab{background:transparent;border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:3px;font-size:10px;font-family:var(--font-mono);cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.tab.active,.tab:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.mini-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mini-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;}
+.mc-label{font-size:10px;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:var(--font-mono);}
+.mc-val{font-family:var(--font-display);font-size:1.4rem;font-weight:700;}
+.mc-val.green{color:var(--accent);}
+.mc-val.red{color:var(--red);}
+.mc-val.normal{color:var(--text);font-size:1.1rem;}
+.mc-sub{font-size:10px;color:var(--text2);margin-top:2px;font-family:var(--font-mono);}
+
+/* ── TICKER ── */
+.ticker-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;overflow:hidden;white-space:nowrap;}
+.ticker-scroll{display:inline-flex;gap:3rem;animation:scrollL 35s linear infinite;}
+@keyframes scrollL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.t-item{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--text2);}
+.t-sym{color:var(--text);font-weight:700;}
+.t-up{color:var(--accent);}
+.t-dn{color:var(--red);}
+
+/* ── SEZIONI ── */
+section.fs{padding:5rem 2.5rem;}
+.si{max-width:1200px;margin:0 auto;}
+.sec-label{font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:.8rem;font-family:var(--font-mono);}
+.sec-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3.2rem);font-weight:800;letter-spacing:-0.5px;margin-bottom:.5rem;}
+.sec-sub{color:var(--text2);max-width:500px;line-height:1.8;}
+
+/* ── POSTS ── */
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-top:2.5rem;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem;cursor:pointer;transition:border-color .25s,transform .25s;position:relative;overflow:hidden;text-decoration:none;color:inherit;display:block;}
+.post-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.post-card:hover::before{transform:scaleX(1);}
+.post-card:hover{border-color:#333;transform:translateY(-4px);}
+.pc-tag{display:inline-block;padding:3px 10px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:1rem;font-family:var(--font-mono);}
+.pc-tag.g{background:var(--accent-dim);color:var(--accent);}
+.pc-tag.r{background:var(--red-dim);color:var(--red);}
+.pc-tag.b{background:var(--blue-dim);color:var(--blue);}
+.pc-tag.o{background:rgba(255,157,61,0.08);color:var(--orange);}
+.post-card h3{font-family:var(--font-display);font-size:1.05rem;font-weight:700;margin-bottom:.6rem;line-height:1.35;color:var(--text);}
+.post-card p{font-size:13px;color:var(--text2);line-height:1.65;}
+.pc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--text2);font-family:var(--font-mono);}
+.pc-read{color:var(--accent);}
+
+/* ── CHART SECTION ── */
+.big-chart-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.big-chart-inner{max-width:1200px;margin:0 auto;padding:4rem 2.5rem;}
+.chart-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+.asset-btn{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:3px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.asset-btn.active,.asset-btn:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+
+/* ── WATCHLIST ── */
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin-top:2.5rem;}
+.wl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.3rem;transition:border-color .2s;}
+.wl-card:hover{border-color:#333;}
+.wl-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;}
+.wl-name{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);}
+.wl-ticker{font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-top:2px;}
+.wl-badge{padding:3px 8px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--font-mono);}
+.wl-badge.g{background:var(--accent-dim);color:var(--accent);}
+.wl-badge.r{background:var(--red-dim);color:var(--red);}
+.wl-badge.b{background:var(--blue-dim);color:var(--blue);}
+.wl-badge.o{background:rgba(255,157,61,0.08);color:var(--orange);}
+.wl-exp{font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:4px;}
+.wl-label{font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem;font-family:var(--font-mono);}
+.conv-bar{display:flex;gap:4px;margin-bottom:.8rem;}
+.conv-pip{width:18px;height:4px;border-radius:1px;background:var(--accent);}
+.conv-pip.off{background:var(--border);}
+.wl-note{font-size:11px;color:var(--text2);line-height:1.5;padding-top:.8rem;border-top:1px solid var(--border);}
+
+/* ── NEWS ── */
+.news-section{background:var(--surface);}
+.news-list{margin-top:2rem;display:flex;flex-direction:column;gap:.8rem;}
+.news-row{display:grid;grid-template-columns:80px 10px 1fr;gap:1rem;align-items:start;padding:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;transition:border-color .2s;}
+.news-row:hover{border-color:#333;}
+.nr-time{font-family:var(--font-mono);font-size:10px;color:var(--text2);line-height:1.7;}
+.nr-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.nr-dot.hot{background:var(--red);}
+.nr-dot.warm{background:var(--orange);}
+.nr-dot.cold{background:var(--muted);}
+.nr-title{font-size:13px;font-weight:500;margin-bottom:3px;color:var(--text);}
+.nr-sub{font-size:11px;color:var(--text2);line-height:1.6;}
+
+/* ── ABOUT ── */
+.about-grid{display:grid;grid-template-columns:1fr 400px;gap:4rem;align-items:center;margin-top:3rem;}
+.about-p{color:var(--text2);line-height:1.9;margin-bottom:1rem;font-size:15px;}
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.profile-top{background:var(--surface2);padding:2rem;border-bottom:1px solid var(--border);}
+.avatar{width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:#080808;margin-bottom:1rem;}
+.profile-name{font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:2px;}
+.profile-role{font-size:12px;color:var(--text2);font-family:var(--font-mono);}
+.profile-body{padding:1.5rem;}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.ps-val{font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--accent);}
+.ps-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);}
+.etoro-btn{display:block;background:var(--accent);color:#080808;text-align:center;padding:12px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:opacity .2s;}
+.etoro-btn:hover{opacity:0.85;}
+
+/* ── FOOTER ── */
+footer{padding:2rem 2.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:gap;font-size:11px;color:var(--muted);font-family:var(--font-mono);}
+.fl{color:var(--accent);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding-top:4rem;gap:2rem;}
+  .about-grid{grid-template-columns:1fr;}
+  .nav-links,.nav-btn{display:none;}
+  .hamburger{display:block;}
+  .wl-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+}
+@media(max-width:600px){
+  section.fs{padding:3rem 1.2rem;}
+  .hero{padding:3rem 1.2rem 2rem;}
+  nav{padding:0 1.2rem;}
+  .big-chart-inner{padding:3rem 1.2rem;}
+  footer{flex-direction:column;gap:.5rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-i">
+    <a class="logo" href="#">FINANCE<em>SHOTS</em></a>
+    <ul class="nav-links">
+      <li><a href="#analisi">Analisi</a></li>
+      <li><a href="#charts">Charts</a></li>
+      <li><a href="#watchlist">Watchlist</a></li>
+      <li><a href="#news">News</a></li>
+      <li><a href="#about">Chi siamo</a></li>
+    </ul>
+    <a class="nav-btn" href="https://www.etoro.com/people/giovannialiberti" target="_blank">eToro →</a>
+    <button class="hamburger" onclick="document.getElementById('mob').style.display=document.getElementById('mob').style.display==='block'?'none':'block'">☰</button>
+  </div>
+</nav>
+<div id="mob" class="mobile-menu">
+  <a href="#analisi" onclick="document.getElementById('mob').style.display='none'">Analisi</a>
+  <a href="#charts" onclick="document.getElementById('mob').style.display='none'">Charts</a>
+  <a href="#watchlist" onclick="document.getElementById('mob').style.display='none'">Watchlist</a>
+  <a href="#news" onclick="document.getElementById('mob').style.display='none'">News</a>
+  <a href="#about" onclick="document.getElementById('mob').style.display='none'">Chi siamo</a>
+  <a href="https://www.etoro.com/people/giovannialiberti" target="_blank">eToro →</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">
+      <div class="live-dot"></div>
+      <span class="eyebrow-text">Analisi aggiornate · Skin in the game</span>
+    </div>
+    <h1 class="hero-title">FINANCE<span class="line2">SHOTS.</span></h1>
+    <p class="hero-desc">Analisi tecniche, stock thesis e market commentary. Niente rumore. Solo tesi chiare, livelli reali, conviction propria.</p>
+    <div class="hero-btns">
+      <a class="btn-a" href="#analisi">Leggi le analisi</a>
+      <a class="btn-b" href="#watchlist">Watchlist 2026 →</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="chart-widget">
+      <div class="chart-header">
+        <div>
+          <div class="chart-asset">BTC / USD</div>
+          <div class="chart-price" id="btc-price">$96,420</div>
+          <span class="chart-chg-pos">+2.34% oggi</span>
+        </div>
+        <div class="chart-tabs">
+          <button class="tab active">1D</button>
+          <button class="tab">1W</button>
+          <button class="tab">1M</button>
+        </div>
+      </div>
+      <div style="position:relative;height:120px;">
+        <canvas id="heroChart" role="img" aria-label="Grafico andamento BTC nelle ultime ore">BTC price chart</canvas>
+      </div>
+    </div>
+    <div class="mini-cards">
+      <div class="mini-card">
+        <div class="mc-label">FET / USDT</div>
+        <div class="mc-val red">$0.2375</div>
+        <div class="mc-sub">-3.22% · 4H</div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label">Risk Score</div>
+        <div class="mc-val green">≤ 6</div>
+        <div class="mc-sub">Target mantenuto</div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label">Focus</div>
+        <div class="mc-val normal">AI Infra</div>
+        <div class="mc-sub">Core thesis 2026</div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label">Popular Investor</div>
+        <div class="mc-val green" style="font-size:1.1rem;">eToro</div>
+        <div class="mc-sub">Seguimi → copia</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-scroll" id="tkr"></div>
+</div>
+
+<!-- ANALISI -->
+<!-- ============================================================
+     SEZIONE ANALISI — per aggiungere un post:
+     copia uno dei blocchi .post-card qui sotto,
+     cambia: href, pc-tag, h3, p, e la data nel pc-footer
+     il post più recente va PRIMA degli altri
+     ============================================================ -->
+<section class="fs" id="analisi" style="background:var(--bg);">
+  <div class="si">
+    <div class="sec-label">// ultimi post</div>
+    <h2 class="sec-title">Analisi & Commentary</h2>
+    <p class="sec-sub">Ogni analisi ha una tesi, un entry ragionato e livelli chiave. Niente hype.</p>
+    <div class="posts-grid">
+
+      <!-- POST 1 — più recente in cima -->
+      <a class="post-card" href="analisi/fet-livelli-maggio-2026.html">
+        <span class="pc-tag g">Crypto · TA</span>
+        <h3>FET/USDT – Mappa dei livelli chiave 4H</h3>
+        <p>Rimbalzo da $0.195. Resistenze a $0.2436, $0.2589 e $0.2688. Supporti su $0.2010 e $0.1912. Alert impostati.</p>
+        <div class="pc-footer"><span>09 Mag 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+      <!-- POST 2 -->
+      <a class="post-card" href="analisi/btc-leading-indicator.html">
+        <span class="pc-tag b">Macro</span>
+        <h3>BTC come leading indicator del risk appetite globale</h3>
+        <p>Bitcoin non è solo speculazione. È il barometro più veloce del sentiment macro. Correlazioni e implicazioni pratiche.</p>
+        <div class="pc-footer"><span>07 Mag 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+      <!-- POST 3 -->
+      <a class="post-card" href="analisi/ai-infrastructure-thesis.html">
+        <span class="pc-tag r">Stock Thesis</span>
+        <h3>AI Infrastructure – il ciclo più importante del decennio</h3>
+        <p>Data center, chip, energia. I picks con conviction per i prossimi 18-24 mesi. Catalysts e analisi fondamentale.</p>
+        <div class="pc-footer"><span>05 Mag 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+      <!-- POST 4 -->
+      <a class="post-card" href="analisi/quantum-computing-upside.html">
+        <span class="pc-tag g">Quantum</span>
+        <h3>Quantum Computing – upside asimmetrico o puro hype?</h3>
+        <p>IONQ, RGTI: volatilità estrema ma narrativa strutturale. Come fare sizing su una posizione speculativa con disciplina.</p>
+        <div class="pc-footer"><span>02 Mag 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+      <!-- POST 5 -->
+      <a class="post-card" href="analisi/lezione-peggior-trade-q1.html">
+        <span class="pc-tag r">Reflection</span>
+        <h3>Cosa ho imparato dal mio peggior trade del Q1</h3>
+        <p>Entry sbagliato, size troppo alta, stop mentale invece che reale. Tre errori in uno. La lezione vale più dell'utile perso.</p>
+        <div class="pc-footer"><span>28 Apr 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+      <!-- POST 6 -->
+      <a class="post-card" href="analisi/timing-retail.html">
+        <span class="pc-tag b">Opinion</span>
+        <h3>Il 90% degli analisti retail sbaglia il timing – ecco perché</h3>
+        <p>Non è la tesi che uccide i rendimenti. È il sizing e la gestione dell'emotività durante il drawdown.</p>
+        <div class="pc-footer"><span>25 Apr 2026</span><span class="pc-read">Leggi →</span></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- CHARTS INTERATTIVI -->
+<section class="big-chart-section" id="charts">
+  <div class="big-chart-inner">
+    <div class="sec-label">// grafici interattivi</div>
+    <h2 class="sec-title" style="margin-bottom:1.5rem;">Performance comparata</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+      <div class="chart-controls" id="assetBtns">
+        <button class="asset-btn active" data-asset="0">BTC</button>
+        <button class="asset-btn active" data-asset="1">FET</button>
+        <button class="asset-btn" data-asset="2">NVDA</button>
+        <button class="asset-btn" data-asset="3">IONQ</button>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text2);">Rendimento normalizzato · Ultimi 6 mesi</div>
+    </div>
+    <div style="position:relative;height:320px;">
+      <canvas id="mainChart" role="img" aria-label="Grafico comparativo performance BTC FET NVDA IONQ ultimi 6 mesi">Performance comparata asset selezionati</canvas>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:1rem;flex-wrap:wrap;" id="legendMain"></div>
+    <p style="font-size:10px;color:var(--muted);margin-top:1rem;font-family:var(--font-mono);">* Dati indicativi a scopo illustrativo. Non costituiscono consulenza finanziaria.</p>
+  </div>
+</section>
+
+<!-- WATCHLIST -->
+<!-- ============================================================
+     WATCHLIST — per aggiungere/modificare un asset:
+     copia un blocco .wl-card, aggiorna nome, ticker, badge,
+     expected return, conviction (conv-pip / conv-pip off) e nota
+     ============================================================ -->
+<section class="fs watchlist-section" id="watchlist" style="background:var(--bg);">
+  <div class="si">
+    <div class="sec-label">// picks 2026–2027</div>
+    <h2 class="sec-title">Watchlist & Expected Return</h2>
+    <p class="sec-sub">Posizioni con conviction. Ogni card ha una tesi, un settore e una stima di rendimento atteso.</p>
+    <div class="wl-grid">
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Innodata</div><div class="wl-ticker">INOD</div></div><span class="wl-badge g">AI Data</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+40/80%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div></div>
+        <div class="wl-note">Data engineering per Big Tech. Revenue +54% YoY, guidance alzata. Contratti con Palantir e US Defense. Post-earnings reset narrativo.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Rigetti Computing</div><div class="wl-ticker">RGTI</div></div><span class="wl-badge b">Quantum</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+60/120%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Full-stack quantum, architettura modulare. Contratto AFRL, partnership DARPA QBI. Alta volatilità, upside asimmetrico. Size contenuto.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">AppLovin</div><div class="wl-ticker">APP</div></div><span class="wl-badge g">Ad Tech · AI</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+25/50%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Piattaforma Axon AI aperta a tutti gli inserzionisti da giugno. Revenue Q1 +59% YoY. Da closed a open marketplace — catalyst strutturale.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Fetch.ai</div><div class="wl-ticker">FET / USDT</div></div><span class="wl-badge o">Crypto · AI</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+80/150%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Agenti AI autonomi on-chain. Narrativa AI + crypto, ciclo strutturale. Supporto chiave $0.20, breakout sopra $0.24 cambia scenario.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Varonis Systems</div><div class="wl-ticker">VRNS</div></div><span class="wl-badge b">Cybersecurity</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+30/55%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Data security leader, transizione SaaS accelerata. Consensus Buy da 19 analisti. Domanda enterprise in crescita strutturale post-AI.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Oklo</div><div class="wl-ticker">OKLO</div></div><span class="wl-badge r">Nuclear · Energy</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+35/90%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">SMR per data center AI. Deal 1.2GW con Meta. NRC approval ottenuto. Pre-revenue ma pipeline commerciale reale. Alta volatilità.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Evolv Technology</div><div class="wl-ticker">EVLV</div></div><span class="wl-badge g">AI Security</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+40/100%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Security screening AI-powered touchless. Small cap con forte upside. Consensus Strong Buy, target analisti $9+. Speculative, size piccolo.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Intuitive Surgical</div><div class="wl-ticker">ISRG</div></div><span class="wl-badge b">MedTech · AI</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+25/40%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Leader robotica chirurgica. Procedure +17% YoY, buyback $5B. 44 analisti con consensus Buy, target mediano $615. Compunder di qualità.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">NextDecade</div><div class="wl-ticker">NEXT</div></div><span class="wl-badge r">LNG · Energy</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+40/90%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">LNG export USA, Rio Grande facility. Domanda europea strutturale post-Russia. Alta leva operativa. Posizione speculativa con catalyst energetico.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Applied Digital</div><div class="wl-ticker">APLD</div></div><span class="wl-badge g">AI Infra</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+40/80%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">AI factory builder, contratto $7.5B con hyperscaler. Pivot da crypto a HPC. Target analisti $44-52. Capex aggressivo, rischio execution.</div>
+      </div>
+
+      <div class="wl-card">
+        <div class="wl-top"><div><div class="wl-name">Bitdeer</div><div class="wl-ticker">BTDR</div></div><span class="wl-badge o">Crypto · Mining</span></div>
+        <div class="wl-label">Expected return</div>
+        <div class="wl-exp">+35/80%</div>
+        <div class="conv-bar"><div class="conv-pip"></div><div class="conv-pip"></div><div class="conv-pip off"></div><div class="conv-pip off"></div><div class="conv-pip off"></div></div>
+        <div class="wl-note">Mining BTC + HPC AI, pivot in corso. Correlazione con ciclo BTC. Alta volatilità, posizione speculativa. Upside se BTC supera ATH.</div>
+      </div>
+
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:1.5rem;font-family:var(--font-mono);">* Stime personali basate su analisi propria. Non costituiscono consulenza finanziaria.</p>
+  </div>
+</section>
+
+<!-- NEWS -->
+<!-- ============================================================
+     BREAKING NEWS — per aggiungere una news:
+     copia un blocco .news-row, aggiorna data/ora, dot (hot/warm/cold),
+     titolo e sottotitolo. La più recente va PRIMA.
+     ============================================================ -->
+<section class="fs news-section" id="news">
+  <div class="si">
+    <div class="sec-label">// breaking news</div>
+    <h2 class="sec-title">News filtrate & analizzate</h2>
+    <p class="sec-sub">Non ripetiamo le news. Le filtriamo e scriviamo cosa significano per il portafoglio.</p>
+    <div class="news-list">
+
+      <div class="news-row">
+        <div class="nr-time">09 MAG<br>09:14</div>
+        <div class="nr-dot hot"></div>
+        <div><div class="nr-title">Fed mantiene i tassi – cosa implica per il risk-on</div><div class="nr-sub">FOMC fermo. Il mercato legge cautela, non paura. Implicazioni per BTC e growth stocks.</div></div>
+      </div>
+
+      <div class="news-row">
+        <div class="nr-time">07 MAG<br>14:30</div>
+        <div class="nr-dot warm"></div>
+        <div><div class="nr-title">NVIDIA supera le stime – il ciclo AI non si ferma</div><div class="nr-sub">Guidance Q2 sopra le attese. Capex hyperscaler in accelerazione. Impatto sulla thesis AI.</div></div>
+      </div>
+
+      <div class="news-row">
+        <div class="nr-time">05 MAG<br>11:00</div>
+        <div class="nr-dot cold"></div>
+        <div><div class="nr-title">BTC consolida sopra $95k – livelli da monitorare</div><div class="nr-sub">Struttura tecnica intatta. On-chain data mostra accumulo istituzionale.</div></div>
+      </div>
+
+      <div class="news-row">
+        <div class="nr-time">03 MAG<br>08:45</div>
+        <div class="nr-dot cold"></div>
+        <div><div class="nr-title">IonQ – nuovo contratto con US Air Force</div><div class="nr-sub">Catalyst positivo per la thesis quantum. Size piccolo ma segnale validante sulla narrativa.</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CHI SIAMO -->
+<section class="fs" id="about" style="background:var(--bg);">
+  <div class="si">
+    <div class="sec-label">// chi siamo</div>
+    <h2 class="sec-title">Skin in the game.</h2>
+    <div class="about-grid">
+      <div>
+        <p class="about-p">Finance Shots nasce da una convinzione semplice: le analisi migliori vengono da chi ha soldi veri sul tavolo, non da chi commenta da fuori.</p>
+        <p class="about-p">Niente previsioni campate in aria. Niente hype. Solo tesi chiare, livelli reali e la disciplina di chi gestisce un portafoglio attivo ogni giorno.</p>
+        <p class="about-p">Aggiornamenti frequenti, analisi approfondite, market commentary quando il mercato lo richiede. Se vuoi sapere cosa pensiamo di un asset, c'è una tesi scritta — non un'opinione improvvisata.</p>
+      </div>
+      <div class="profile-card">
+        <div class="profile-top">
+          <div class="avatar">GA</div>
+          <div class="profile-name">Giovanni Aliberti</div>
+          <div class="profile-role">Portfolio Manager · Popular Investor eToro</div>
+        </div>
+        <div class="profile-body">
+          <div class="profile-stats">
+            <div><div class="ps-val">≤6</div><div class="ps-label">Risk</div></div>
+            <div><div class="ps-val">AI</div><div class="ps-label">Focus</div></div>
+            <div><div class="ps-val">BTC</div><div class="ps-label">Macro</div></div>
+          </div>
+          <a class="etoro-btn" href="https://www.etoro.com/people/giovannialiberti" target="_blank">Seguimi su eToro →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="fl">FINANCE SHOTS</span>
+  <span>Contenuti a scopo informativo · Non consulenza finanziaria · 2026</span>
+</footer>
+
+<script>
+// ── TICKER ──
+const tickers=[
+  {sym:'BTC',p:'$96,420',c:'+2.34%',up:true},
+  {sym:'FET',p:'$0.2375',c:'-3.22%',up:false},
+  {sym:'NVDA',p:'$892.40',c:'+1.8%',up:true},
+  {sym:'ETH',p:'$3,210',c:'+1.1%',up:true},
+  {sym:'IONQ',p:'$18.75',c:'+5.1%',up:true},
+  {sym:'XOM',p:'$114.30',c:'-0.4%',up:false},
+  {sym:'AMD',p:'$168.50',c:'+2.7%',up:true},
+  {sym:'CL',p:'$78.45',c:'-0.9%',up:false},
+  {sym:'RGTI',p:'$9.82',c:'+3.6%',up:true},
+];
+const tkr=document.getElementById('tkr');
+tkr.innerHTML=[...tickers,...tickers].map(x=>`<span class="t-item"><span class="t-sym">${x.sym}</span>${x.p}<span class="${x.up?'t-up':'t-dn'}">${x.c}</span></span>`).join('');
+
+// ── HERO CHART (BTC sparkline) ──
+const heroData=[91200,92400,90800,93500,94100,92800,93900,95200,94800,96100,95400,96800,95900,97200,96500,96200,97100,96800,96420];
+new Chart(document.getElementById('heroChart'),{
+  type:'line',
+  data:{labels:heroData.map(()=>''),datasets:[{data:heroData,borderColor:'#d4f53c',borderWidth:2,pointRadius:0,fill:true,backgroundColor:'rgba(212,245,60,0.05)',tension:0.4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+});
+
+// ── TAB BUTTONS (hero) ──
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  this.classList.add('active');
+}));
+
+// ── MAIN CHART (performance comparata) ──
+const months=['Nov','Dic','Gen','Feb','Mar','Apr','Mag'];
+const assets=[
+  {label:'BTC',color:'#d4f53c',data:[100,118,142,128,156,172,188]},
+  {label:'FET',color:'#ff3d3d',data:[100,134,189,142,98,112,127]},
+  {label:'NVDA',color:'#4f9eff',data:[100,108,122,115,118,128,138]},
+  {label:'IONQ',color:'#ff9d3d',data:[100,145,210,168,132,158,182]},
+];
+let activeAssets=new Set([0,1]);
+
+function buildMainChart(){
+  const existing=Chart.getChart('mainChart');
+  if(existing)existing.destroy();
+  const datasets=assets.filter((_,i)=>activeAssets.has(i)).map(a=>({
+    label:a.label,data:a.data,borderColor:a.color,borderWidth:2,
+    pointRadius:3,pointBackgroundColor:a.color,fill:false,tension:0.3
+  }));
+  new Chart(document.getElementById('mainChart'),{
+    type:'line',
+    data:{labels:months,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{mode:'index',intersect:false,backgroundColor:'#111',borderColor:'#333',borderWidth:1,titleColor:'#666',bodyColor:'#e8e4d9',titleFont:{family:'Space Mono',size:10},bodyFont:{family:'Space Grotesk',size:12}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555',font:{family:'Space Mono',size:10}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555',font:{family:'Space Mono',size:10},callback:v=>v+'%'}}
+      }
+    }
+  });
+  document.getElementById('legendMain').innerHTML=assets.filter((_,i)=>activeAssets.has(i)).map(a=>`<span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666;font-family:'Space Mono',monospace;"><span style="width:14px;height:3px;background:${a.color};border-radius:1px;display:inline-block;"></span>${a.label}</span>`).join('');
+}
+
+document.getElementById('assetBtns').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-asset]');
+  if(!btn)return;
+  const idx=+btn.dataset.asset;
+  if(activeAssets.has(idx)){if(activeAssets.size>1){activeAssets.delete(idx);btn.classList.remove('active');}}
+  else{activeAssets.add(idx);btn.classList.add('active');}
+  buildMainChart();
+});
+
+buildMainChart();
+</script>
+</body>
+</html>
