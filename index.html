@@ -228,28 +228,22 @@ footer{padding:2rem 2.5rem;border-top:1px solid var(--border);display:flex;justi
     </div>
   </div>
   <div class="hero-right">
-    <div class="chart-widget">
-      <div class="chart-header">
-        <div>
-          <div class="chart-asset">BTC / USD</div>
-          <div class="chart-price" id="btc-price">$96,420</div>
-          <span class="chart-chg-pos">+2.34% oggi</span>
-        </div>
-        <div class="chart-tabs">
-          <button class="tab active">1D</button>
-          <button class="tab">1W</button>
-          <button class="tab">1M</button>
-        </div>
-      </div>
-      <div style="position:relative;height:120px;">
-        <canvas id="heroChart" role="img" aria-label="Grafico andamento BTC nelle ultime ore">BTC price chart</canvas>
+    <div class="chart-widget" style="padding:0;overflow:hidden;border-radius:10px;">
+      <div class="tradingview-widget-container" style="height:280px;width:100%;">
+        <iframe
+          scrolling="no"
+          allowtransparency="true"
+          frameborder="0"
+          src="https://s.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=BITSTAMP%3ABTCUSD&interval=60&hidesidetoolbar=1&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=0d0d0d&studies=[]&theme=dark&style=1&timezone=Europe%2FRome&withdateranges=1&showpopupbutton=0&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=it&utm_source=finance-shots&utm_medium=widget&utm_campaign=chart"
+          style="width:100%;height:280px;border:none;border-radius:10px;">
+        </iframe>
       </div>
     </div>
     <div class="mini-cards">
       <div class="mini-card">
-        <div class="mc-label">FET / USDT</div>
-        <div class="mc-val red">$0.2375</div>
-        <div class="mc-sub">-3.22% · 4H</div>
+        <div class="mc-label">BTC / USD live</div>
+        <div class="mc-val green" id="btc-live">caricamento...</div>
+        <div id="btc-chg" class="mc-sub">aggiornamento...</div>
       </div>
       <div class="mini-card">
         <div class="mc-label">Risk Score</div>
@@ -546,28 +540,104 @@ footer{padding:2rem 2.5rem;border-top:1px solid var(--border);display:flex;justi
 </footer>
 
 <script>
-// ── TICKER ──
-const tickers=[
-  {sym:'BTC',p:'$96,420',c:'+2.34%',up:true},
-  {sym:'FET',p:'$0.2375',c:'-3.22%',up:false},
-  {sym:'NVDA',p:'$892.40',c:'+1.8%',up:true},
-  {sym:'ETH',p:'$3,210',c:'+1.1%',up:true},
-  {sym:'IONQ',p:'$18.75',c:'+5.1%',up:true},
-  {sym:'XOM',p:'$114.30',c:'-0.4%',up:false},
-  {sym:'AMD',p:'$168.50',c:'+2.7%',up:true},
-  {sym:'CL',p:'$78.45',c:'-0.9%',up:false},
-  {sym:'RGTI',p:'$9.82',c:'+3.6%',up:true},
-];
-const tkr=document.getElementById('tkr');
-tkr.innerHTML=[...tickers,...tickers].map(x=>`<span class="t-item"><span class="t-sym">${x.sym}</span>${x.p}<span class="${x.up?'t-up':'t-dn'}">${x.c}</span></span>`).join('');
+// ── TICKER LIVE (CoinGecko + Finnhub fallback) ──
+const cryptoIds = {
+  'BTC':'bitcoin','ETH':'ethereum','FET':'fetch-ai'
+};
+const stockSymbols = ['NVDA','AMD','IONQ','RGTI','APLD','ISRG','APP','OKLO'];
+
+function fmt(n){
+  if(n>=1000) return '$'+n.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(n>=1) return '$'+n.toFixed(2);
+  return '$'+n.toFixed(4);
+}
+function fmtChg(n){
+  const s = (n>=0?'+':'')+n.toFixed(2)+'%';
+  return {str:s, up:n>=0};
+}
+
+function renderTicker(items){
+  const tkr=document.getElementById('tkr');
+  const doubled=[...items,...items];
+  tkr.innerHTML=doubled.map(x=>`<span class="t-item"><span class="t-sym">${x.sym}</span>${x.p}<span class="${x.up?'t-up':'t-dn'}">${x.c}</span></span>`).join('');
+}
+
+async function fetchCrypto(){
+  try{
+    const ids = Object.values(cryptoIds).join(',');
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+    const d = await r.json();
+    return Object.entries(cryptoIds).map(([sym,id])=>{
+      const coin = d[id];
+      if(!coin) return null;
+      const chg = fmtChg(coin.usd_24h_change||0);
+      return {sym, p:fmt(coin.usd), c:chg.str, up:chg.up};
+    }).filter(Boolean);
+  }catch(e){
+    return [
+      {sym:'BTC',p:'$96,420',c:'+2.34%',up:true},
+      {sym:'ETH',p:'$3,210',c:'+1.1%',up:true},
+      {sym:'FET',p:'$0.237',c:'-3.2%',up:false}
+    ];
+  }
+}
+
+async function fetchStocks(){
+  // Yahoo Finance proxy via allorigins (no key needed)
+  const results = [];
+  const staticFallback = {
+    'NVDA':{p:'$892',c:'+1.8%',up:true},
+    'AMD':{p:'$168',c:'+2.7%',up:true},
+    'IONQ':{p:'$18.75',c:'+5.1%',up:true},
+    'RGTI':{p:'$16.9',c:'+3.6%',up:true},
+    'APLD':{p:'$29',c:'+2.1%',up:true},
+    'ISRG':{p:'$452',c:'+0.8%',up:true},
+    'APP':{p:'$370',c:'+1.5%',up:true},
+    'OKLO':{p:'$67',c:'-1.2%',up:false}
+  };
+  for(const sym of stockSymbols){
+    try{
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const r = await fetch(proxy, {signal:AbortSignal.timeout(4000)});
+      const raw = await r.json();
+      const data = JSON.parse(raw.contents);
+      const meta = data.chart.result[0].meta;
+      const price = meta.regularMarketPrice;
+      const prev = meta.previousClose;
+      const chgPct = ((price-prev)/prev)*100;
+      const chg = fmtChg(chgPct);
+      results.push({sym, p:fmt(price), c:chg.str, up:chg.up});
+    }catch(e){
+      const fb = staticFallback[sym];
+      if(fb) results.push({sym, ...fb});
+    }
+  }
+  return results;
+}
+
+async function loadTicker(){
+  const [crypto, stocks] = await Promise.all([fetchCrypto(), fetchStocks()]);
+  const all = [...crypto, ...stocks];
+  renderTicker(all);
+  // update mini cards BTC price
+  if(crypto.length>0){
+    const btc = crypto.find(x=>x.sym==='BTC');
+    const fet = crypto.find(x=>x.sym==='FET');
+    if(btc){
+      const el = document.getElementById('btc-live');
+      if(el) el.textContent = btc.p;
+      const chgEl = document.getElementById('btc-chg');
+      if(chgEl){ chgEl.textContent = btc.c+' 24h'; chgEl.className = btc.up ? 'chart-chg-pos' : 'chart-chg-neg'; }
+    }
+  }
+}
+
+loadTicker();
+setInterval(loadTicker, 60000);
 
 // ── HERO CHART (BTC sparkline) ──
-const heroData=[91200,92400,90800,93500,94100,92800,93900,95200,94800,96100,95400,96800,95900,97200,96500,96200,97100,96800,96420];
-new Chart(document.getElementById('heroChart'),{
-  type:'line',
-  data:{labels:heroData.map(()=>''),datasets:[{data:heroData,borderColor:'#d4f53c',borderWidth:2,pointRadius:0,fill:true,backgroundColor:'rgba(212,245,60,0.05)',tension:0.4}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
-});
+// hero chart handled by TradingView widget
 
 // ── TAB BUTTONS (hero) ──
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
